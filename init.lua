@@ -143,3 +143,4 @@ function writef(t, f, n, m)
    end
    return nil
 end -- >>>
+-- vim: fmr=<<<,>>> fdm=marker
