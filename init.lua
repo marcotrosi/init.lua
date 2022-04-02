@@ -57,3 +57,14 @@ function printt(t, f)
    end
 end
 
+--[[
+remove words with length 2 to 4
+local S = "a bb ccc dddd eeeee"
+print(S:gsub("%f[%a]".. rpt("%a",2,4) .."%f[%A]", ""))
+if Lua had classic repitions for regex then the line would be
+print(S:gsub("%f[%a]%a{2,4}%f[%A]", ""))
+--]]
+function rpt(s,m,n)
+   return s:rep(m) .. (s..'?'):rep(n-m)
+end
+
