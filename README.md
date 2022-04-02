@@ -10,4 +10,6 @@ Lua functions I always want to have available.
 
 - `printt` to print tables on screen or to file
 - `rpt` workaround for missing regex repititions of the form {m,n}
+- `readf` read file
+- `writef` write file
 

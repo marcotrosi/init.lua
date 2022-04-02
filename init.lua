@@ -130,14 +130,16 @@ function writef(t, f, n, m)
 
    local File_h = io.open(f, m)
    if File_h then
-      for _,l in ipairs(t) do
-         File_h:write(l)
-         File_h:write(n)
+      if (type(t) == "table") then
+         for _,l in ipairs(t) do
+            File_h:write(l)
+            File_h:write(n)
+         end
+      else
+         File_h:write(t)
       end
       File_h:close()
       return true
    end
    return nil
 end -- >>>
-
--- vim: fmr=<<<,>>> fdm=marker
