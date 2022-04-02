@@ -57,19 +57,28 @@ function printt(t, f)
       io.output(io.stdout)
    end
 end -- >>>
--- rpt <<<
+-- copyt <<<
 --[[
-remove words with length 2 to 4
-local S = "a bb ccc dddd eeeee"
-print(S:gsub("%f[%a]".. rpt("%a",2,4) .."%f[%A]", ""))
-if Lua had classic repitions for regex then the line would be
-print(S:gsub("%f[%a]%a{2,4}%f[%A]", ""))
+This is a simple copy table function. It uses recursion so you may get trouble
+with cycles and too big tables. But in most cases this function is absolutely enough.
 
-s   = regex atomic to repeat
-m,n = repitition range
+t = table to copy
 --]]
-function rpt(s,m,n)
-   return s:rep(m) .. (s..'?'):rep(n-m)
+function copyt(t)
+
+   if type(t) ~= "table" then return nil end
+
+   local Copy_t = {}
+ 
+   for k,v in pairs(t) do
+      if type(v) == "table" then
+         Copy_t[k] = copyTable(v)
+      else
+         Copy_t[k] = v
+      end
+   end
+ 
+   return Copy_t
 end -- >>>
 -- readf <<<
 --[[
@@ -112,21 +121,10 @@ function writef(t, f, n, m)
    local n = n or "\n"
    local m = m or "w"
 
-   if (type(t) ~= "table") and (type(t) ~= "string") then
-      return nil
-   end
-
-   if (type(f) ~= "string") then
-      return nil
-   end
-
-   if (type(n) ~= "string") then
-      return nil
-   end
-
-   if (type(m) ~= "string") or (not string.match(m, "^[wa]%+?$")) then
-      return nil
-   end
+   if (type(t) ~= "table") and (type(t) ~= "string")              then return nil end
+   if (type(f) ~= "string")                                       then return nil end
+   if (type(n) ~= "string")                                       then return nil end
+   if (type(m) ~= "string") or (not string.match(m, "^[wa]%+?$")) then return nil end
 
    local File_h = io.open(f, m)
    if File_h then
@@ -142,5 +140,80 @@ function writef(t, f, n, m)
       return true
    end
    return nil
+end -- >>>
+-- rpt <<<
+--[[
+remove words with length 2 to 4
+local S = "a bb ccc dddd eeeee"
+print(S:gsub("%f[%a]".. rpt("%a",2,4) .."%f[%A]", ""))
+if Lua had classic repitions for regex then the line would be
+print(S:gsub("%f[%a]%a{2,4}%f[%A]", ""))
+
+s   = regex atomic to repeat
+m,n = repitition range
+--]]
+function rpt(s,m,n)
+   return s:rep(m) .. (s..'?'):rep(n-m)
+end -- >>>
+-- eq <<<
+--[[
+This function takes 2 values as input and returns true if they are equal and false if not.
+
+a and b can numbers, strings, booleans, tables and nil.
+--]]
+function eq(a,b)
+
+   local function isEqualTable(t1,t2) -- <<<
+
+      if t1 == t2 then
+         return true
+      end
+
+      for k,v in pairs(t1) do
+
+         if type(t1[k]) ~= type(t2[k]) then
+            return false
+         end
+
+         if type(t1[k]) == "table" then
+            if not isEqualTable(t1[k], t2[k]) then
+               return false
+            end
+         else
+            if t1[k] ~= t2[k] then
+               return false
+            end
+         end
+      end
+
+      for k,v in pairs(t2) do
+
+         if type(t2[k]) ~= type(t1[k]) then
+            return false
+         end
+
+         if type(t2[k]) == "table" then
+            if not isEqualTable(t2[k], t1[k]) then
+               return false
+            end
+         else
+            if t2[k] ~= t1[k] then
+               return false
+            end
+         end
+      end
+
+      return true
+   end -- >>>
+
+   if type(a) ~= type(b) then
+      return false
+   end
+
+   if type(a) == "table" then
+      return isEqualTable(a,b)
+   else
+      return (a == b)
+   end
 end -- >>>
 -- vim: fmr=<<<,>>> fdm=marker
