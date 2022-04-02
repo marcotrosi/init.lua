@@ -216,4 +216,51 @@ function eq(a,b)
       return (a == b)
    end
 end -- >>>
+-- run <<<
+--[[
+This is kind of a wrapper function to os.execute and io.popen.
+The problem with os.execute is that it can only return the
+exit status but not the command output. And io.popen can provide
+the command output but not an exit status. This function can do both.
+It will return the same return valus as os.execute plus two additional tables.
+These tables contain the command output, 1 line per numeric index.
+Line feed and carriage return are removed from each line.
+The first table contains the stdout stream, the second the stderr stream.
+
+cmd     = command to execute, can be string or table
+capture = optional boolean value to turn on/off capturing output, default is false.
+          if capture is true, then the command will be surround with parantheses, just in case the cmd contains pipes.
+--]]
+function run(cmd, capture)
+ 
+   if (type(cmd) ~= "string") and (type(cmd) ~= "table") then return nil end
+ 
+   local OutFile_s = "/tmp/init.lua.run.out"
+   local ErrFile_s = "/tmp/init.lua.run.err"
+   local Command_s
+   local Out_t
+   local Err_t
+
+   if type(cmd) == "table" then
+      Command_s = table.concat(cmd, " ")
+   else
+      Command_s = cmd
+   end
+
+   if capture then
+      Command_s = "( " .. Command_s .. " )" .. " 1> " .. OutFile_s .. " 2> " .. ErrFile_s
+   end
+ 
+   local Status_b, Signal_n, ExitCode_n = os.execute(Command_s)
+  
+   if capture then
+      Out_t = readf(OutFile_s)
+      Err_t = readf(ErrFile_s)
+      os.remove(OutFile_s)
+      os.remove(ErrFile_s)
+      return Status_b, Signal_n, ExitCode_n, Out_t, Err_t
+   end
+ 
+   return Status_b, Signal_n, ExitCode_n
+end -- >>>
 -- vim: fmr=<<<,>>> fdm=marker
