@@ -97,6 +97,7 @@ function readf(f)
 
    return nil
 end -- >>>
+-- writef <<<
 --[[
 writef takes a table or string and writes it to a file and returns true if writing was successful, otherwise nil.
 If t is a table it shall contain numerical indices (1 to n) with strings as values, and no nil values in-between.
@@ -137,6 +138,6 @@ function writef(t, f, n, m)
       return true
    end
    return nil
-end
+end -- >>>
 
 -- vim: fmr=<<<,>>> fdm=marker
