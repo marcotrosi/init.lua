@@ -263,4 +263,153 @@ function run(cmd, capture)
  
    return Status_b, Signal_n, ExitCode_n
 end -- >>>
+-- str <<<
+function str(t)
+   if type(t) == "table" then
+      local ret_t = {}
+      local function convertTableToString(obj, cnt) -- <<<
+         local cnt=cnt or 0
+         if type(obj) == "table" then
+            table.insert(ret_t, "\n" .. string.rep("\t",cnt) .. "{\n")
+            cnt = cnt+1
+            for k,v in pairs(obj) do
+               if type(k) == "string" then
+                  table.insert(ret_t, string.rep("\t",cnt) .. '["' .. k .. '"] = ')
+               end
+               if type(k) == "number" then
+                  table.insert(ret_t, string.rep("\t",cnt) .. "[" .. k.. "] = ")
+               end
+               convertTableToString(v, cnt)
+               table.insert(ret_t, ",\n")
+            end
+            cnt = cnt-1
+            table.insert(ret_t, string.rep("\t",cnt) .. "}")
+         elseif type(obj) == "string" then
+            table.insert(ret_t, string.format("%q",obj))
+         else
+            table.insert(ret_t, tostring(obj))
+         end 
+      end -- >>>
+      convertTableToString(t)
+      return table.concat(ret_t)
+   elseif type(t) == "function" then
+      return string.dump(t, true)
+   elseif type(t) == "string" then
+      return string.format("%q", t)
+   else
+      return tostring(t)
+   end
+end -- >>>
+-- log <<<
+--[[
+log({Functions={["anyfuncname"]=true}})
+function main()
+end
+xpcall(main, log)
+--]]
+function log(x)
+   if (type(x) == "string") and ((x=="call") or (x=="tail call") or (x=="return") or (x=="line") or (x=="count")) then -- parameter is string, means function was called via debug hook, means log function call/return information <<<
+      -- TODO check how to handle functions as parameter ?
+      -- TODO check how to handle elipse ... (nameless parameters) ?
+      Info_t     = debug.getinfo(2, "n")
+      Function_s = Info_t.name
+
+      if _G.Log.Functions[Function_s] then
+
+         local Data = {Function=Function_s, Event=x}
+         local UpValueCnt_n = 1
+         local UpValues_t = {}
+
+         while true do
+
+            Name, Value = debug.getlocal(2, UpValueCnt_n)
+
+            if (x == "call") and (Name == '(temporary)') then
+               break
+            end
+
+            if (Name == nil) then
+               break
+            end
+
+            -- if type(Value) == "string" then
+               table.insert(UpValues_t, {["Name"]=Name, ["Type"]=type(Value), ["Value"]=str(Value)})
+            -- end
+
+            -- if type(Value) == "number" then
+               -- table.insert(UpValues_t, {["Name"]=Name, ["Type"]="number", ["Value"]=tostring(Value)})
+            -- end
+
+            -- if type(Value) == "nil" then
+               -- table.insert(UpValues_t, {["Name"]=Name, ["Type"]="nil"   , ["Value"]=tostring(Value)})
+            -- end
+
+            -- if type(Value) == "table" then
+               -- table.insert(UpValues_t, {["Name"]=Name, ["Type"]="table" , ["Value"]=str(Value)})
+            -- end
+
+            UpValueCnt_n = UpValueCnt_n + 1
+         end
+
+         if (x == "return") then
+            table.remove(UpValues_t) -- remove last entry, it's a Lua internal
+         end
+         Data.UpValues = UpValues_t
+
+         table.insert(_G.Log.Data, Data)
+
+         if (#(_G.Log.Data) > (_G.Log.Max or 20)) and (_G.Log.Max ~= 0) then
+            table.remove(_G.Log.Data, 1)
+         end
+      end
+      -- >>>
+   elseif type(x) == "table"  then -- parameter is table, means function was called by user, means do configuration <<<
+
+      if _G.Log == nil then
+         _G.Log = {Data={}}
+      end
+      _G.Log.IsOn      = x.IsOn      or _G.Log.IsOn      or true                    -- logging on/off
+      _G.Log.File      = x.File      or _G.Log.File      or "/tmp/init.lua.logfile" -- name of the log file
+      _G.Log.Max       = x.Max       or _G.Log.Max       or 20                      -- maximum number of log entries, set to 0 to log everything, default is 20
+      _G.Log.Functions = x.Functions or _G.Log.Functions or {}                      -- table of registered functions
+      if _G.Log.IsOn then
+         debug.sethook(log, "cr") -- c and/or r
+      end
+      -- >>>
+   else -- assuming function was called from xpcall, means write logfile <<<
+
+      if (_G.Log == nil) or (_G.Log.IsOn ~= true) then
+         return
+      end
+
+      local LogFile_h = io.open(_G.Log.File, "w+")
+      if not LogFile_h then
+         io.stderr:write("\nlog error: could not open '".._G.Log.File.."' for writing\n")
+			return
+		end 
+
+		for i,v in ipairs(_G.Log.Data or {}) do
+
+			LogFile_h:write(v.Event .. " " .. v.Function,"\n")
+
+			for _,p in ipairs(v.UpValues) do
+				LogFile_h:write("   "..p.Name.." "..p.Type.." "..p.Value.."\n")
+			end
+
+			LogFile_h:write("────────────────────────────────────────────────\n")
+		end
+
+		LogFile_h:write(string.format("Error Message: %s\n" , x))
+		LogFile_h:write(string.format("Time Stamp: %s\n" , os.date()))
+		LogFile_h:write(string.format("Lua Version: %s\n", _VERSION ))
+		LogFile_h:close()
+
+		io.stderr:write("\noh oh, something unforeseen happened. Looks like you found a bug.")
+		io.stderr:write("\nthe error message is: " .. x)
+		io.stderr:write("\nif you want you can report your actions along with the logfile '".._G.Log.File.."'.")
+		io.stderr:write("\nthank you very much and my apologies for any inconveniences this may have caused.\n")
+
+	end -- >>>
+end
+-- >>>
 -- vim: fmr=<<<,>>> fdm=marker

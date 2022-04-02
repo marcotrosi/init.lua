@@ -11,8 +11,9 @@ Lua functions I always want to have available.
 - `printt` to print tables on screen or to file
 - `copyt` copy table
 - `rpt` workaround for missing regex repititions of the form {m,n}
-- `readf` read file
-- `writef` write file
+- `readf` read file, return table
+- `writef` write table/string to file
 - `eq` compares 2 values for equality
-- `run` executes external command and can capture the output
+- `run` executes external command and optionally capture the output
+- `log` to log function calls/returns in a logfile (uses str() helper function)
 
