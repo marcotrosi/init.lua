@@ -72,7 +72,7 @@ function copyt(t)
  
    for k,v in pairs(t) do
       if type(v) == "table" then
-         Copy_t[k] = copyTable(v)
+         Copy_t[k] = copyt(v)
       else
          Copy_t[k] = v
       end
@@ -144,10 +144,10 @@ end -- >>>
 -- rpt <<<
 --[[
 remove words with length 2 to 4
-local S = "a bb ccc dddd eeeee"
-print(S:gsub("%f[%a]".. rpt("%a",2,4) .."%f[%A]", ""))
+s = "a bb ccc dddd eeeee"
+print(s:gsub("%f[%a]".. rpt("%a",2,4) .."%f[%A]", ""))
 if Lua had classic repitions for regex then the line would be
-print(S:gsub("%f[%a]%a{2,4}%f[%A]", ""))
+print(s:gsub("%f[%a]%a{2,4}%f[%A]", ""))
 
 s   = regex atomic to repeat
 m,n = repitition range
@@ -293,7 +293,12 @@ function str(t)
       convertTableToString(t)
       return table.concat(ret_t)
    elseif type(t) == "function" then
-      return string.dump(t, true)
+      local status, result = pcall(string.dump, t, true)
+      if status then
+         return result
+      else
+         return "not dumpable function"
+      end
    elseif type(t) == "string" then
       return string.format("%q", t)
    else
@@ -302,8 +307,12 @@ function str(t)
 end -- >>>
 -- log <<<
 --[[
-log({Functions={["anyfuncname"]=true}})
+function add(a,b)
+    return a+b
+end
+log({Functions={["add"]=true}})
 function main()
+    print(add(4,nil)) -- let it crash here
 end
 xpcall(main, log)
 --]]
@@ -324,29 +333,15 @@ function log(x)
 
             Name, Value = debug.getlocal(2, UpValueCnt_n)
 
-            if (x == "call") and (Name == '(temporary)') then
-               break
-            end
-
             if (Name == nil) then
                break
             end
 
-            -- if type(Value) == "string" then
-               table.insert(UpValues_t, {["Name"]=Name, ["Type"]=type(Value), ["Value"]=str(Value)})
-            -- end
+            if (x == "call") and (Name == '(temporary)') then
+               break
+            end
 
-            -- if type(Value) == "number" then
-               -- table.insert(UpValues_t, {["Name"]=Name, ["Type"]="number", ["Value"]=tostring(Value)})
-            -- end
-
-            -- if type(Value) == "nil" then
-               -- table.insert(UpValues_t, {["Name"]=Name, ["Type"]="nil"   , ["Value"]=tostring(Value)})
-            -- end
-
-            -- if type(Value) == "table" then
-               -- table.insert(UpValues_t, {["Name"]=Name, ["Type"]="table" , ["Value"]=str(Value)})
-            -- end
+            table.insert(UpValues_t, {["Name"]=Name, ["Type"]=type(Value), ["Value"]=str(Value)})
 
             UpValueCnt_n = UpValueCnt_n + 1
          end
@@ -404,10 +399,10 @@ function log(x)
 		LogFile_h:write(string.format("Lua Version: %s\n", _VERSION ))
 		LogFile_h:close()
 
-		io.stderr:write("\noh oh, something unforeseen happened. Looks like you found a bug.")
-		io.stderr:write("\nthe error message is: " .. x)
-		io.stderr:write("\nif you want you can report your actions along with the logfile '".._G.Log.File.."'.")
-		io.stderr:write("\nthank you very much and my apologies for any inconveniences this may have caused.\n")
+		io.stderr:write("oh oh, something unforeseen happened. Looks like you found a bug.\n")
+		io.stderr:write("the error message is: " .. x .. "\n")
+		io.stderr:write("if you want you can report your actions along with the logfile '".._G.Log.File.."'.\n")
+		io.stderr:write("thank you very much and my apologies for any inconveniences this may have caused.\n")
 
 	end -- >>>
 end
