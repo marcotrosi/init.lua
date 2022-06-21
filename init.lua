@@ -264,8 +264,14 @@ function run(cmd, capture)
    return Status_b, Signal_n, ExitCode_n
 end -- >>>
 -- str <<<
-function str(t)
-   if type(t) == "table" then
+--[[
+This function converts tables, functions, ... to strings.
+If the input is a string then a quoted string is returned.
+
+x = input to convert to string
+--]]
+function str(x)
+   if type(x) == "table" then
       local ret_t = {}
       local function convertTableToString(obj, cnt) -- <<<
          local cnt=cnt or 0
@@ -290,23 +296,35 @@ function str(t)
             table.insert(ret_t, tostring(obj))
          end 
       end -- >>>
-      convertTableToString(t)
+      convertTableToString(x)
       return table.concat(ret_t)
-   elseif type(t) == "function" then
-      local status, result = pcall(string.dump, t, true)
+   elseif type(x) == "function" then
+      local status, result = pcall(string.dump, x, true)
       if status then
          return result
       else
          return "not dumpable function"
       end
-   elseif type(t) == "string" then
-      return string.format("%q", t)
+   elseif type(x) == "string" then
+      return string.format("%q", x)
    else
-      return tostring(t)
+      return tostring(x)
    end
 end -- >>>
 -- log <<<
 --[[
+This function has actually 3 purposes and the behavior changes with the parameters.
+I know it's kinda dirty, but I had it in separate functions before and I decided to put all in a single function.
+
+The user can call it only with a configuration table or pass it to `xpcall()`. See Example.
+
+::. CONFIG TABLE .::
+Functions = a key-value table with the functionname you want to register as key, and a boolean true/false to activate logging for this function
+IsOn      = boolean value to globally turn logging on/off, default is true
+File      = path of the log file, default is "/tmp/init.lua.logfile"
+Max       = maximum number of log file entries, default is 20
+
+::. EXAMPLE USAGE .::
 function add(a,b)
     return a+b
 end
