@@ -423,6 +423,25 @@ function log(x)
 		io.stderr:write("thank you very much and my apologies for any inconveniences this may have caused.\n")
 
 	end -- >>>
-end
--- >>>
+end -- >>>
+-- maxn <<<
+--[[
+This function only brings back the table.maxn() function from version 5.1.
+It returns the largest positive numerical index of the given table,
+or zero if the table has no positive numerical indices.
+
+The reason why such a function can be useful is because the `#` length operator
+only works on sequences, means when the numerical indices have no gaps.
+
+t = table
+--]]
+function maxn(t)
+   local n = 0
+   for i,v in pairs(t) do
+      if type(i) == 'number' then
+         n = math.max(n,i)
+      end
+   end
+   return n
+end -- >>>
 -- vim: fmr=<<<,>>> fdm=marker

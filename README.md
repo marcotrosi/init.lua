@@ -28,6 +28,7 @@ yet what the final list of functions will be.
 - `run` executes external command and optionally capture the output
 - `str` converts any non-string type to string, and strings to quoted strings
 - `log` to log function calls/returns in a logfile (uses the `str()` function)
+- `maxn` to get the largest positive numerical index of the given table
 
 ## documentation
 
@@ -290,4 +291,26 @@ So there is only 1 parameter in case of the configuration call, which shall be a
     Error Message: main.lua:2: attempt to perform arithmetic on a nil value (local 'b')
     Time Stamp: Sat Apr  2 23:12:06 2022
     Lua Version: Lua 5.4
+
+
+### maxn
+
+#### description
+
+This function only brings back the table.maxn() function from version 5.1.
+It returns the largest positive numerical index of the given table,
+or zero if the table has no positive numerical indices.
+
+The reason why such a function can be useful is because the `#` length operator
+only works on sequences reliably, means when the numerical indices have no gaps.
+
+#### example
+
+    local a={1,2,3,4,5,6}       -- this is a sequence, #a is 6
+    local b={nil,2,3,nil,nil,6} -- table with gaps, potential values of #b are 0, 3 and 6
+
+    print(#a)      -- 6
+    print(maxn(a)) -- 6
+    print(#b)      -- 0, 3 or 6
+    print(maxn(b)) -- 6
 
