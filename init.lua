@@ -398,31 +398,31 @@ function log(x)
       local LogFile_h = io.open(_G.Log.File, "w+")
       if not LogFile_h then
          io.stderr:write("\nlog error: could not open '".._G.Log.File.."' for writing\n")
-			return
-		end 
+         return
+      end 
 
-		for i,v in ipairs(_G.Log.Data or {}) do
+      for i,v in ipairs(_G.Log.Data or {}) do
 
-			LogFile_h:write(v.Event .. " " .. v.Function,"\n")
+         LogFile_h:write(v.Event .. " " .. v.Function,"\n")
 
-			for _,p in ipairs(v.UpValues) do
-				LogFile_h:write("   "..p.Name.." "..p.Type.." "..p.Value.."\n")
-			end
+         for _,p in ipairs(v.UpValues) do
+            LogFile_h:write("   "..p.Name.." "..p.Type.." "..p.Value.."\n")
+         end
 
-			LogFile_h:write("────────────────────────────────────────────────\n")
-		end
+         LogFile_h:write("────────────────────────────────────────────────\n")
+      end
 
-		LogFile_h:write(string.format("Error Message: %s\n" , x))
-		LogFile_h:write(string.format("Time Stamp: %s\n" , os.date()))
-		LogFile_h:write(string.format("Lua Version: %s\n", _VERSION ))
-		LogFile_h:close()
+      LogFile_h:write(string.format("Error Message: %s\n" , x))
+      LogFile_h:write(string.format("Time Stamp: %s\n" , os.date()))
+      LogFile_h:write(string.format("Lua Version: %s\n", _VERSION ))
+      LogFile_h:close()
 
-		io.stderr:write("oh oh, something unforeseen happened. Looks like you found a bug.\n")
-		io.stderr:write("the error message is: " .. x .. "\n")
-		io.stderr:write("if you want you can report your actions along with the logfile '".._G.Log.File.."'.\n")
-		io.stderr:write("thank you very much and my apologies for any inconveniences this may have caused.\n")
+      io.stderr:write("oh oh, something unforeseen happened. Looks like you found a bug.\n")
+      io.stderr:write("the error message is: " .. x .. "\n")
+      io.stderr:write("if you want you can report your actions along with the logfile '".._G.Log.File.."'.\n")
+      io.stderr:write("thank you very much and my apologies for any inconveniences this may have caused.\n")
 
-	end -- >>>
+   end -- >>>
 end -- >>>
 -- maxn <<<
 --[[
@@ -444,4 +444,42 @@ function maxn(t)
    end
    return n
 end -- >>>
+-- split <<<
+--[[
+split takes a string and splits it at all occurrences of the given delimiter.
+The delimiter itself gets removed and each string piece will be put in a table, which will be returned.
+
+s = string
+d = delimiter (regex pattern)
+--]]
+function split(s, d)
+
+   if (type(s) ~= "string") or (type(d) ~= "string") then
+      return nil
+   end
+
+   local Result_t = {}
+
+   if s == "" then
+      return Result_t
+   end
+
+   if d == "" then
+      table.insert(Result_t, s)
+      return Result_t
+   end
+ 
+   local Start = 1
+   local SplitStart, SplitEnd = string.find(s, d, Start)
+ 
+   while SplitStart do
+      table.insert(Result_t, string.sub(s, Start, SplitStart-1))
+      Start = SplitEnd + 1
+      SplitStart, SplitEnd = string.find(s, d, Start)
+   end
+   table.insert(Result_t, string.sub(s, Start)) -- insert remaining string into table
+ 
+   return Result_t
+end
+-- >>>
 -- vim: fmr=<<<,>>> fdm=marker
