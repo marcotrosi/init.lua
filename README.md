@@ -417,7 +417,8 @@ and prints accordingly a test case message with useful information.
 This function provides a quick way to parse the commandline arguments passed to the script.
 It can not be fed with a configuration to describe the supported arguments, instead it only
 extracts whatever the user has passed as args. Therefore it's recommended to use this
-function only for rapid prototyping.
+function only for rapid prototyping. The function parameters are only for internal recursive
+calls and not for the users.
 
 The following features are supported ...
 
