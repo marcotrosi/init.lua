@@ -34,7 +34,7 @@ configuration, for example ...
 - `rpt` workaround for missing regex repititions of the form {m,n}
 - `readf` to read-in files as tables
 - `writef` to write tables/strings to file
-- `eq` to compares 2 values for equality
+- `eq` to compare two values for equality
 - `run` to execute external commands and optionally capture the output
 - `str` to convert any non-string type to string, and strings to quoted strings
 - `log` to log function calls/returns in a logfile (uses the `str()` function)
