@@ -51,9 +51,10 @@ function printt(t, f)
    if f == nil then
       printTableHelper(t)
    else
-      io.output(f)
+      local h = io.output(f)
       io.write("return")
       printTableHelper(t)
+      h:close()
       io.output(io.stdout)
    end
 end -- >>>
