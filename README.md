@@ -1,6 +1,6 @@
 # init.lua
 
-Lua functions I always want to have available.
+Lua functions I always want to have available. Feel free to copy what you need.
 
 
 ## background
