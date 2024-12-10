@@ -81,6 +81,29 @@ function copyt(t)
  
    return Copy_t
 end -- >>>
+-- get <<<
+--[[
+This function allows accessing values of a string indexed nested tables.
+get(t, 'a.b.c')
+is the same as
+t.a and t.a.b and t.a.b.c
+
+t = table to access
+k = string to use as key
+--]]
+function get(t,k)
+   if type(t) ~= "table" then return nil end
+   local Pos_n = string.find(k, "%.")
+   if Pos_n then
+      -- local Idx = string.sub(k, 1, Pos_n-1)
+      -- local T = t[tonumber(Idx) or Idx]
+      local T = t[string.sub(k, 1, Pos_n-1)]
+      if T == nil then return nil end
+      return get(T, string.sub(k, Pos_n+1))
+   else
+      return t[k]
+   end
+end -- >>>
 -- rpt <<<
 --[[
 remove words with length 2 to 4
