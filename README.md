@@ -371,16 +371,19 @@ only works on sequences reliably, means when the numerical indices have no gaps.
     print(maxn(b)) -- 6
 
 
-### `split(s, d)`
+### `split(s, d, w)`
 
     s = string
     d = delimiter regex pattern
+    w = where ["at" is default, "before", "after"] (optional)
 
 #### description
 
 This function takes a string and splits it at all occurrences of the given
-delimiter. The delimiter itself gets removed and each string piece will be put
-in a table, which will be returned.
+delimiter. This is the default behaviour which also removes the delimiter.
+With the third optional parameter you can also choose to split before or after
+the delimiter without removing the delimiter.
+Each chunk will be put in a table which gets returned.
 
 #### example
 

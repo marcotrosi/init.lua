@@ -475,8 +475,9 @@ The delimiter itself gets removed and each string piece will be put in a table, 
 
 s = string
 d = delimiter (regex pattern)
+w = where ('before', 'after', 'at')
 --]]
-function split(s, d)
+function split(s, d, w)
 
    if (type(s) ~= "string") or (type(d) ~= "string") then
       return nil
@@ -493,15 +494,29 @@ function split(s, d)
       return Result_t
    end
  
-   local Start = 1
-   local SplitStart, SplitEnd = string.find(s, d, Start)
+   local w = w or "at"
+
+   local SearchStart = 1
+   local SplitStart  = 1
+   local MatchStart, MatchEnd = string.find(s, d, SearchStart)
  
-   while SplitStart do
-      table.insert(Result_t, string.sub(s, Start, SplitStart-1))
-      Start = SplitEnd + 1
-      SplitStart, SplitEnd = string.find(s, d, Start)
+   while MatchStart do
+
+      if w == "at" then
+         table.insert(Result_t, string.sub(s, SplitStart, MatchStart-1))
+         SplitStart = MatchEnd + 1 
+      elseif w == "before" then
+         table.insert(Result_t, string.sub(s, SplitStart, MatchStart-1))
+         SplitStart = MatchStart
+      else -- w == "after"
+         table.insert(Result_t, string.sub(s, SplitStart, MatchEnd))
+         SplitStart = MatchEnd + 1 
+      end
+
+      SearchStart = MatchEnd + 1
+      MatchStart, MatchEnd = string.find(s, d, SearchStart)
    end
-   table.insert(Result_t, string.sub(s, Start)) -- insert remaining string into table
+   table.insert(Result_t, string.sub(s, SplitStart)) -- insert remaining string into table
  
    return Result_t
 end
