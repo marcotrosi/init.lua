@@ -31,6 +31,7 @@ configuration, for example ...
 
 - `printt` to print tables on screen or to file
 - `copyt` to copy tables
+- `get` access table values with dot-chained string indices
 - `rpt` workaround for missing regex repititions of the form {m,n}
 - `readf` to read-in files as tables
 - `writef` to write tables/strings to file
@@ -110,6 +111,28 @@ most cases this function is absolutely enough.
     }
     > print(t == t2)
     false
+
+
+### `get(t, k)`
+
+    t = table to access
+    k = string indices
+
+#### description
+
+This is a function to access values of nested string indexed table with a single
+string consisting of multiple dot-separated table string indices. Therefore this
+function has some limitations, your table string indices can not contain dots.
+
+#### example
+
+    ~ ❯ lua
+    Lua 5.4.3  Copyright (C) 1994-2021 Lua.org, PUC-Rio
+    > t = {foo={bar={super='hello world'}}}
+    > printt(t.foo and t.foo.bar and t.foo.bar.super)
+    hello world
+    > print(get(t, 'foo.bar.super'))
+    hello world
 
 
 ### `rpt(s,m,n)`
