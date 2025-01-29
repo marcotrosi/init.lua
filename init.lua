@@ -30,7 +30,11 @@ function printt(t, f)
             end
 
             if type(k) == "number" then
-               io.write(string.rep("\t",cnt), "["..k.."]", " = ")
+               io.write(string.rep("\t",cnt), "["..tostring(k).."]", " = ")
+            end
+
+            if type(k) == "boolean" then
+               io.write(string.rep("\t",cnt), "["..tostring(k).."]", " = ")
             end
 
             printTableHelper(v, cnt)
@@ -81,6 +85,19 @@ function copyt(t)
  
    return Copy_t
 end -- >>>
+-- appendt <<<
+--[[
+A function to append the numeric indexed values from one or more ... tables to a given table t. 
+
+t   = table to append to
+... = tables to append from
+--]]
+function appendt(t, ...)
+   for _,v in ipairs({...}) do
+      table.move(v, 1, #v, #t+1, t)
+   end
+   return t
+end -- >>>
 -- get <<<
 --[[
 This function allows accessing values of a string indexed nested tables.
@@ -104,20 +121,124 @@ function get(t,k)
       return t[k]
    end
 end -- >>>
--- rpt <<<
+-- kpairs <<<
 --[[
-remove words with length 2 to 4
-s = "a bb ccc dddd eeeee"
-print(s:gsub("%f[%a]".. rpt("%a",2,4) .."%f[%A]", ""))
-if Lua had classic repitions for regex then the line would be
-print(s:gsub("%f[%a]%a{2,4}%f[%A]", ""))
+Iterator function to iterate only the string indices / keys in a table.
 
-s   = regex atomic to repeat
-m,n = repitition range
+t = table
 --]]
-function rpt(s,m,n)
-   return s:rep(m) .. (s..'?'):rep(n-m)
+function kpairs(t)
+   return function(_, c)
+      local k,v = c
+      while true do
+         k,v = next(t, k)
+         if type(k) == "string" then return k,v end
+         if k == nil then return nil end
+      end
+   end
 end -- >>>
+-- maxn <<<
+--[[
+This function only brings back the table.maxn() function from version 5.1.
+It returns the largest positive numerical index of the given table,
+or zero if the table has no positive numerical indices.
+
+The reason why such a function can be useful is because the `#` length operator
+only works on sequences, means when the numerical indices have no gaps.
+
+t = table
+--]]
+function maxn(t)
+   local n = 0
+   for i,v in pairs(t) do
+      if type(i) == 'number' then
+         n = math.max(n,i)
+      end
+   end
+   return n
+end -- >>>
+-- index <<<
+--[[
+This function returns the index of the first occurrence of a given value in
+table, or nil of the value does not exist.
+
+t = table
+x = value
+--]]
+function index(t,x)
+   if type(t) ~= "table" then return nil end
+   for i,v in ipairs(t) do
+      if x == v then return i end
+   end
+   return nil
+end -- >>>
+-- filter <<<
+--[[
+This function creates a new table containing only specific values from a given table. 
+Whether a value is added or not is determined by the function that has to return true or false.
+The function has to take the value as first parameters.
+
+t   = table
+f   = function
+... = parameters
+--]]
+function filter(t, f, ...)
+   local r, i = {}, 0
+   for _,v in ipairs(t) do
+      if f(v, ...) then
+         i = i + 1
+         r[i] = v
+      end
+   end
+   return r
+end -- >>>
+-- apply <<<
+--[[
+This function applies a given function to each value in a numerical indexed table.
+
+t   = table
+f   = function
+... = parameters
+--]]
+function apply(t, f, ...)
+   for i,v in ipairs(t) do
+      f(v, ...)
+   end
+   return t
+end -- >>>
+-- map <<<
+--[[
+This function applies a given function to each value in a numerical indexed
+table, and overwrites the value with the result.
+
+t   = table
+f   = function
+... = parameters
+--]]
+function map(t, f, ...)
+   local r={}
+   for i,v in ipairs(t) do
+      r[i] = f(v, ...)
+   end
+   return r
+end -- >>>
+-- fold <<<
+--[[
+This function applies a given function to each value in a numerical indexed
+table, ...
+
+t   = table
+f   = function
+... = parameters
+--]]
+function fold(t, init, f, ...)
+   local r = init
+   for i,v in ipairs(t) do
+      r = f(r, v, ...)
+   end
+   return r
+end -- >>>
+
 -- readf <<<
 --[[
 readf() reads a file and returns the content as a table with one line per index.
@@ -178,6 +299,29 @@ function writef(t, f, n, m)
       return true
    end
    return nil
+end -- >>>
+
+-- tobool <<<
+--[[
+This function converts a given value into boolean.
+0, "", {}, nil and false are all false, everything else is true.
+
+x = value
+--]]
+function tobool(x)
+   local typex = type(x)
+   if typex == "nil" then
+      return false
+   elseif (typex == "string") and (x == ""    )    then
+      return false
+   elseif (typex == "number") and (x == 0     )    then
+      return false
+   elseif (typex == "table")  and (next(x) == nil) then
+      return false
+   elseif typex == "boolean"                       then
+      return x
+   end
+   return true
 end -- >>>
 -- eq <<<
 --[[
@@ -240,53 +384,6 @@ function eq(a,b)
       return (a == b)
    end
 end -- >>>
--- run <<<
---[[
-This is kind of a wrapper function to os.execute and io.popen.
-The problem with os.execute is that it can only return the
-exit status but not the command output. And io.popen can provide
-the command output but not an exit status. This function can do both.
-It will return the same return valus as os.execute plus two additional tables.
-These tables contain the command output, 1 line per numeric index.
-Line feed and carriage return are removed from each line.
-The first table contains the stdout stream, the second the stderr stream.
-
-cmd     = command to execute, can be string or table
-capture = optional boolean value to turn on/off capturing output, default is false.
-          if capture is true, then the command will be surround with parantheses, just in case the cmd contains pipes.
---]]
-function run(cmd, capture)
- 
-   if (type(cmd) ~= "string") and (type(cmd) ~= "table") then return nil end
- 
-   local OutFile_s = "/tmp/init.lua.run.out"
-   local ErrFile_s = "/tmp/init.lua.run.err"
-   local Command_s
-   local Out_t
-   local Err_t
-
-   if type(cmd) == "table" then
-      Command_s = table.concat(cmd, " ")
-   else
-      Command_s = cmd
-   end
-
-   if capture then
-      Command_s = "( " .. Command_s .. " )" .. " 1> " .. OutFile_s .. " 2> " .. ErrFile_s
-   end
- 
-   local Status_b, Signal_n, ExitCode_n = os.execute(Command_s)
-  
-   if capture then
-      Out_t = readf(OutFile_s)
-      Err_t = readf(ErrFile_s)
-      os.remove(OutFile_s)
-      os.remove(ErrFile_s)
-      return Status_b, Signal_n, ExitCode_n, Out_t, Err_t
-   end
- 
-   return Status_b, Signal_n, ExitCode_n
-end -- >>>
 -- str <<<
 --[[
 This function converts tables, functions, ... to strings.
@@ -334,6 +431,134 @@ function str(x)
    else
       return tostring(x)
    end
+end -- >>>
+-- split <<<
+--[[
+split() takes a string and splits it at all occurrences of the given delimiter.
+The delimiter itself gets removed and each string piece will be put in a table, which will be returned.
+
+s = string
+d = delimiter (regex pattern)
+w = where ('before', 'after', 'at')
+--]]
+function split(s, d, w)
+
+   if (type(s) ~= "string") or (type(d) ~= "string") then
+      return nil
+   end
+
+   local Result_t = {}
+
+   if s == "" then
+      return Result_t
+   end
+
+   if d == "" then
+      table.insert(Result_t, s)
+      return Result_t
+   end
+ 
+   local w = w or "at"
+
+   local SearchStart = 1
+   local SplitStart  = 1
+   local MatchStart, MatchEnd = string.find(s, d, SearchStart)
+ 
+   while MatchStart do
+
+      if w == "at" then
+         table.insert(Result_t, string.sub(s, SplitStart, MatchStart-1))
+         SplitStart = MatchEnd + 1 
+      elseif w == "before" then
+         table.insert(Result_t, string.sub(s, SplitStart, MatchStart-1))
+         SplitStart = MatchStart
+      else -- w == "after"
+         table.insert(Result_t, string.sub(s, SplitStart, MatchEnd))
+         SplitStart = MatchEnd + 1 
+      end
+
+      SearchStart = MatchEnd + 1
+      MatchStart, MatchEnd = string.find(s, d, SearchStart)
+   end
+   table.insert(Result_t, string.sub(s, SplitStart)) -- insert remaining string into table
+ 
+   return Result_t
+end
+-- >>>
+-- rpt <<<
+--[[
+remove words with length 2 to 4
+s = "a bb ccc dddd eeeee"
+print(s:gsub("%f[%a]".. rpt("%a",2,4) .."%f[%A]", ""))
+if Lua had classic repitions for regex then the line would be
+print(s:gsub("%f[%a]%a{2,4}%f[%A]", ""))
+
+s   = regex atomic to repeat
+m,n = repitition range
+--]]
+function rpt(s,m,n)
+   return s:rep(m) .. (s..'?'):rep(n-m)
+end -- >>>
+-- now <<<
+function now(l)
+--[[
+This function returns a string of the current time (UTC/GMT or local time) is ISO format.
+
+l = local time
+--]]
+   if l then
+      return os.date("%Y-%m-%dT%T%z")
+   else
+      return os.date("!%Y-%m-%dT%TZ")
+   end
+end -- >>>
+
+-- run <<<
+--[[
+This is kind of a wrapper function to os.execute and io.popen.
+The problem with os.execute is that it can only return the
+exit status but not the command output. And io.popen can provide
+the command output but not an exit status. This function can do both.
+It will return the same return valus as os.execute plus two additional tables.
+These tables contain the command output, 1 line per numeric index.
+Line feed and carriage return are removed from each line.
+The first table contains the stdout stream, the second the stderr stream.
+
+cmd     = command to execute, can be string or table
+capture = optional boolean value to turn on/off capturing output, default is false.
+          if capture is true, then the command will be surround with parantheses, just in case the cmd contains pipes.
+--]]
+function run(cmd, capture)
+ 
+   if (type(cmd) ~= "string") and (type(cmd) ~= "table") then return nil end
+ 
+   local OutFile_s = "/tmp/init.lua.run.out"
+   local ErrFile_s = "/tmp/init.lua.run.err"
+   local Command_s
+   local Out_t
+   local Err_t
+
+   if type(cmd) == "table" then
+      Command_s = table.concat(cmd, " ")
+   else
+      Command_s = cmd
+   end
+
+   if capture then
+      Command_s = "( " .. Command_s .. " )" .. " 1> " .. OutFile_s .. " 2> " .. ErrFile_s
+   end
+ 
+   local Status_b, Signal_n, ExitCode_n = os.execute(Command_s)
+  
+   if capture then
+      Out_t = readf(OutFile_s)
+      Err_t = readf(ErrFile_s)
+      os.remove(OutFile_s)
+      os.remove(ErrFile_s)
+      return Status_b, Signal_n, ExitCode_n, Out_t, Err_t
+   end
+ 
+   return Status_b, Signal_n, ExitCode_n
 end -- >>>
 -- log <<<
 --[[
@@ -448,79 +673,6 @@ function log(x)
 
    end -- >>>
 end -- >>>
--- maxn <<<
---[[
-This function only brings back the table.maxn() function from version 5.1.
-It returns the largest positive numerical index of the given table,
-or zero if the table has no positive numerical indices.
-
-The reason why such a function can be useful is because the `#` length operator
-only works on sequences, means when the numerical indices have no gaps.
-
-t = table
---]]
-function maxn(t)
-   local n = 0
-   for i,v in pairs(t) do
-      if type(i) == 'number' then
-         n = math.max(n,i)
-      end
-   end
-   return n
-end -- >>>
--- split <<<
---[[
-split() takes a string and splits it at all occurrences of the given delimiter.
-The delimiter itself gets removed and each string piece will be put in a table, which will be returned.
-
-s = string
-d = delimiter (regex pattern)
-w = where ('before', 'after', 'at')
---]]
-function split(s, d, w)
-
-   if (type(s) ~= "string") or (type(d) ~= "string") then
-      return nil
-   end
-
-   local Result_t = {}
-
-   if s == "" then
-      return Result_t
-   end
-
-   if d == "" then
-      table.insert(Result_t, s)
-      return Result_t
-   end
- 
-   local w = w or "at"
-
-   local SearchStart = 1
-   local SplitStart  = 1
-   local MatchStart, MatchEnd = string.find(s, d, SearchStart)
- 
-   while MatchStart do
-
-      if w == "at" then
-         table.insert(Result_t, string.sub(s, SplitStart, MatchStart-1))
-         SplitStart = MatchEnd + 1 
-      elseif w == "before" then
-         table.insert(Result_t, string.sub(s, SplitStart, MatchStart-1))
-         SplitStart = MatchStart
-      else -- w == "after"
-         table.insert(Result_t, string.sub(s, SplitStart, MatchEnd))
-         SplitStart = MatchEnd + 1 
-      end
-
-      SearchStart = MatchEnd + 1
-      MatchStart, MatchEnd = string.find(s, d, SearchStart)
-   end
-   table.insert(Result_t, string.sub(s, SplitStart)) -- insert remaining string into table
- 
-   return Result_t
-end
--- >>>
 -- test <<<
 --[[
 This function is used for super simple non-fancy unit tests.
@@ -641,4 +793,5 @@ function parse(args, result, eo)
    return Result
 end
 -- >>>
+
 -- vim: fmr=<<<,>>> fdm=marker
