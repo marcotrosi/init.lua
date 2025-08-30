@@ -31,17 +31,27 @@ configuration, for example ...
 
 - `printt` to print tables on screen or to file
 - `copyt` to copy tables
+- `appendt` 
 - `get` access table values with dot-chained string indices
-- `rpt` workaround for missing regex repititions of the form {m,n}
+- `kpairs` 
+- `maxn` to get the largest positive numerical index of the given table
+- `index` 
+- `filter` 
+- `apply` 
+- `map` 
+- `fold` 
 - `readf` to read-in files as tables
 - `writef` to write tables/strings to file
+- `tobool` 
 - `eq` to compare two values for equality
-- `run` to execute external commands and optionally capture the output
 - `str` to convert any non-string type to string, and strings to quoted strings
-- `log` to log function calls/returns in a logfile (uses the `str()` function)
-- `maxn` to get the largest positive numerical index of the given table
 - `split` to split strings at delimiter and return string parts as table
+- `rpt` workaround for missing regex repititions of the form {m,n}
+- `now` 
+- `run` to execute external commands and optionally capture the output
+- `log` to log function calls/returns in a logfile (uses the `str()` function)
 - `test` to create simple unit tests (uses the `str()` and `eq()` functions)
+- `parse` 
 
 
 ## documentation

@@ -137,6 +137,24 @@ function kpairs(t)
       end
    end
 end -- >>>
+-- apairs <<<
+--[[
+Iterator function to iterate only the string indices / keys in a table.
+
+t = table
+--]]
+function apairs(t)
+   local keys, e, i = {}, 0, 0
+   for k,_ in kpairs(t) do
+      e = e+1
+      keys[e]=k
+   end
+   table.sort(keys)
+   return function()
+         i = i+1
+         if i <= e then return keys[i], t[keys[i]] end
+      end
+end -- >>>
 -- maxn <<<
 --[[
 This function only brings back the table.maxn() function from version 5.1.
@@ -224,8 +242,8 @@ function map(t, f, ...)
 end -- >>>
 -- fold <<<
 --[[
-This function applies a given function to each value in a numerical indexed
-table, ...
+This function executes a given function for each value in a numerical indexed
+table and the previous result.
 
 t   = table
 f   = function
@@ -300,6 +318,16 @@ function writef(t, f, n, m)
    end
    return nil
 end -- >>>
+function exists(path)
+   local ok, err, code = os.rename(path, path)
+   if not ok then
+      if code == 13 then
+         -- Permission denied, but it exists
+         return true
+      end
+   end
+   return ok, err
+end
 
 -- tobool <<<
 --[[
