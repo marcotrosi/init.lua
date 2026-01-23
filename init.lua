@@ -318,6 +318,7 @@ function writef(t, f, n, m)
    end
    return nil
 end -- >>>
+-- exists <<<
 function exists(path)
    local ok, err, code = os.rename(path, path)
    if not ok then
@@ -327,8 +328,34 @@ function exists(path)
       end
    end
    return ok, err
-end
+end -- >>>
+-- clamp <<<
+function clamp(value, min, max, dflt)
+   if value == nil then return dflt end
+   if value <  min then return min  end
+   if value >  max then return max  end
+   return value
+end -- >>>
+-- empty <<<
+--[[
 
+x = value
+--]]
+function empty(x)
+   local typex = type(x)
+   if typex == "nil" then
+      return true
+   elseif (typex == "string" ) and (x == ""       ) then
+      return true
+   elseif (typex == "table"  ) and (next(x) == nil) then
+      return true
+   elseif (typex == "number" ) and (x == 0        ) then
+      return true
+   elseif (typex == "boolean") and (x == false    ) then
+      return true
+   end
+   return false
+end -- >>>
 -- tobool <<<
 --[[
 This function converts a given value into boolean.
@@ -340,11 +367,11 @@ function tobool(x)
    local typex = type(x)
    if typex == "nil" then
       return false
-   elseif (typex == "string") and (x == ""    )    then
+   elseif (typex == "string") and (x == ""       ) then
       return false
-   elseif (typex == "number") and (x == 0     )    then
+   elseif (typex == "number") and (x == 0        ) then
       return false
-   elseif (typex == "table")  and (next(x) == nil) then
+   elseif (typex == "table" ) and (next(x) == nil) then
       return false
    elseif typex == "boolean"                       then
       return x
